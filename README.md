@@ -17,7 +17,7 @@ https://github.com/arnehilmann
 ## tl;dr
 
 ```
-docker pull arne/a2sketch
+docker pull arne/a2sketch:0.2
 docker run -it -p 22357:22357 arne/a2sketch:0.2
 curl -s -H "Content-Type: text/plain" --data-binary "tadahh ---'-" http://localhost:22753/a2sketch -o sketch.svg
 open sketch.svg
