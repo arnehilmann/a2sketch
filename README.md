@@ -10,3 +10,5 @@ convert asciiart to handwritten sketches
 https://github.com/arnehilmann
 
 ```
+
+![sketch](examples/logo-sketch.svg)
