@@ -1,0 +1,9 @@
+version: "3.2"
+
+services:
+  a2sketch:
+    build:
+      context: .
+    image: "arne/a2sketch:0.2"
+    ports:
+      - "22753:22753"
