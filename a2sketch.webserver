@@ -67,6 +67,7 @@ const app = express();
 const bodyParser = require('body-parser')
 app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'text/svg+xml' }));
 app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'text/plain' }));
+app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'application/x-www-form-urlencoded' }));
 
 app.post('/s2sketch', function(req, res){
     try {
