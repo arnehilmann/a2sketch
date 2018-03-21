@@ -3,11 +3,11 @@ LABEL maintainer="arne@hilmann.de"
 
 USER root
 
-RUN apk update && apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++ make git php5 && rm -rf /var/cache/apk/*
+RUN apk update && apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++ make git php5 php5-json && rm -rf /var/cache/apk/*
 
 RUN npm -g config set user root
 RUN npm install -g canvas --build-from-source
-RUN npm install -g underscore xpath xmldom express body-parser deasync
+RUN npm install -g underscore xpath xmldom express body-parser deasync canvas-5-polyfill
 
 WORKDIR /
 RUN git clone https://github.com/dhobsd/asciitosvg.git
@@ -21,7 +21,10 @@ LABEL maintainer="arne@hilmann.de"
 
 COPY --from=build /asciitosvg /asciitosvg/
 RUN ln -sf /asciitosvg/a2s /usr/bin/a2s
-COPY --from=build /usr/bin/php5 /usr/bin/php
+COPY --from=build /usr/bin/php5 /usr/bin/php5
+RUN ln -sf /usr/bin/php5 /usr/bin/php
+COPY --from=build /usr/lib/php5 /usr/lib/php5
+COPY --from=build /etc/php5 /etc/php5
 
 COPY --from=build /usr/bin/fc-* /usr/bin/
 

@@ -3,6 +3,8 @@ const fs = require('fs')
 const util = require("util")
 const _ = require("underscore")._
 self = this
+self.document = {}
+self.document.currentScript = {}
 window = process
 eval(fs.readFileSync("rough.js", 'utf-8'))
 const xpath = require('xpath');
@@ -34,6 +36,12 @@ function convertSvgToSketch(svg, seed) {
 
     // plot
     const ctx = canvas.getContext("2d")
+    // canvas-5-polyfill patches CanvasRenderingContext2D.prototype
+    // lets give it one
+    global.CanvasRenderingContext2D = {};
+    global.CanvasRenderingContext2D.prototype = ctx;
+
+    require('canvas-5-polyfill')
     ctx.antialias = "gray"
     ctx.font = "18px xkcd script"
     _.each(select("//x:g/x:text", doc), (te) => {
@@ -42,10 +50,24 @@ function convertSvgToSketch(svg, seed) {
         var text = te.firstChild.data
         ctx.fillText(text, parseInt(x), parseInt(y))
     })
+    rc.path('M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z', { fill: 'green', fillStyle: 'solid' });
+    const nodes = select("//x:g/x:path", doc);
+    _.each(nodes, (e) => {
+        var d = e.attributes.getNamedItem("d")
+        var fill = e.attributes.getNamedItem("fill")
+        if (fill) {
+            console.log(fill.value)
+            rc.path(d.value, {fill: fill.value, fillStyle: 'solid'})
+        } else {
+            rc.path(d.value)
+        }
+    });
+    /*
     const nodes = select("//x:g/x:path/@d", doc);
     _.each(nodes, (e) => {
         rc.path(e.value)
     });
+    */
 
     // copy non-rough elements, like markers...
     const defs = s.serializeToString(select("/x:svg/x:defs", doc)[0])
@@ -61,6 +83,15 @@ function convertAsciiToSvg(text) {
     var exec = require('child_process').execSync
     return exec('a2s -i- -o-', {input: text}).toString()
 }
+
+/*
+var data = fs.readFileSync("examples/logo-sketch.a2s", "utf-8")
+var svg = convertAsciiToSvg(data)
+fs.writeFileSync("examples/test.svg", svg)
+var sketch = convertSvgToSketch(svg, 42)
+fs.writeFileSync("examples/test.sketch.svg", sketch)
+process.exit()
+*/
 
 const express = require('express');
 const app = express();
