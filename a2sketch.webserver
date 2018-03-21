@@ -87,10 +87,19 @@ app.post('/a2svg', function(req, res){
 });
 
 app.post('/a2sketch', function(req, res){
-    var svg = convertAsciiToSvg(req.body)
-    var sketch = convertSvgToSketch(svg, req.query.seed)
-    res.set('Content-Type', 'text/svg+xml')
-    res.status(200).send(sketch)
+    if (req._body) {
+        var svg = convertAsciiToSvg(req.body)
+        var sketch = convertSvgToSketch(svg, req.query.seed)
+        res.set('Content-Type', 'text/svg+xml')
+        res.status(200).send(sketch)
+    } else {
+        res.status(400).end("empty body?!")
+    }
+});
+
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal");
+    process.exit();
 });
 
 port = 22753;
