@@ -69,7 +69,7 @@ function convertSvgToSketch(svg, seed) {
     });
     require("deasync").sleep(delay)
 
-    ctx.font = "18px xkcd script"
+    ctx.font = "20px xkcd script"
     _.each(select("//x:g/x:text", doc), (te) => {
         var x = select("./@x", te)[0].value
         var y = select("./@y", te)[0].value
@@ -86,7 +86,11 @@ function convertSvgToSketch(svg, seed) {
     const markers = s.serializeToString(select("//x:g[@id='lines']", doc)[0])
     var result = canvas.toBuffer().toString()
     result = result.replace("</svg>", defs + markers + "</svg>")
-    return result
+    const result_doc = new dom().parseFromString(result, "svg+xml");
+    _.each(select("//x:svg/x:g", result_doc), (gn) => {
+        gn.setAttribute("transform", "scale(0.75)")
+    })
+    return s.serializeToString(result_doc)
 }
 
 function convertAsciiToSvg(text) {
