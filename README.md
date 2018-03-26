@@ -2,6 +2,8 @@
 
 convert asciiart to handwritten sketches
 
+![sketch](examples/logo-sketch.svg)
+
 ```render_a2sketch
      #-------------------.
      |[0]                |
@@ -21,7 +23,6 @@ convert asciiart to handwritten sketches
 [3]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
 [4]: {"fill": "#ddd", "a2s:delref": true}
 ```
-![sketch](examples/logo-sketch.svg)
 
 
 ## tl;dr
