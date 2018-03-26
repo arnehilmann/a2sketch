@@ -3,13 +3,23 @@
 convert asciiart to handwritten sketches
 
 ```render_a2sketch
-      .------------------.
-      |             .-.  |
-      |  a2sketch   '-'  |
-      |                  |
-      '---------------'--'
-https://github.com/arnehilmann
+     #-------------------.
+     |[0]                |
+     | .---# .---# #---. |
+     | |[1]| |[2]| |[3]| |
+     | #-+-' #-+-' '-+-# |
+     |   ^     ^     ^   |
+     #---+-----+--=--+---#
+     |[4]|     |     |   |
+     |   a     2  sketch |
+     '-------------------#
+ github.com/arnehilmann/a2sketch
 
+[0]: {"fill": "#933", "a2s:delref": true, "fillStyle": "solid"}
+[1]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+[2]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+[3]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+[4]: {"fill": "#ddd", "a2s:delref": true}
 ```
 ![sketch](examples/logo-sketch.svg)
 
@@ -17,8 +27,8 @@ https://github.com/arnehilmann
 ## tl;dr
 
 ```
-docker pull arne/a2sketch:0.3
-docker run -it -p 22357:22357 arne/a2sketch:0.3
+docker pull arne/a2sketch:0.5
+docker run -it -p 22357:22357 arne/a2sketch:0.5
 curl -s --data-binary "-=-=- tadahh -==-" http://localhost:22753/a2sketch -o sketch.svg
 open sketch.svg
 ```
