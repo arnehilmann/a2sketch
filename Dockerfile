@@ -89,6 +89,8 @@ RUN mkdir -p .a2s/objects
 
 ENV NODE_PATH=/usr/local/lib/node_modules/
 COPY a2sketch.webserver .
+COPY rough.js.patch .
 COPY --from=build /rough.* ./
+RUN patch rough.js rough.js.patch
 
 ENTRYPOINT ["node", "a2sketch.webserver"]

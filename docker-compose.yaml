@@ -4,6 +4,6 @@ services:
   a2sketch:
     build:
       context: .
-    image: "arne/a2sketch:0.3"
+    image: "arne/a2sketch:0.4"
     ports:
       - "22753:22753"

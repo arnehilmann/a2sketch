@@ -1,4 +1,10 @@
+const fillWeight = 5
+const delay = 500
+const roughness = 1
+const strokeWidth = 1.4
+
 const { createCanvas, loadImage } = require('canvas')
+require('canvas-5-polyfill')
 const fs = require('fs')
 const util = require("util")
 const _ = require("underscore")._
@@ -32,7 +38,9 @@ function convertSvgToSketch(svg, seed) {
 
     // init canvas
     const canvas = createCanvas(parseInt(width), parseInt(height), "svg")
-    const rc = rough.canvas(canvas, {options: {roughness: 1, strokeWidth: 1.4}, noWorker: true})
+    const rc = rough.canvas(canvas, {async: false,
+                                     options: {roughness: roughness, strokeWidth: strokeWidth},
+                                     noWorker: true})
 
     // plot
     const ctx = canvas.getContext("2d")
@@ -41,39 +49,41 @@ function convertSvgToSketch(svg, seed) {
     global.CanvasRenderingContext2D = {};
     global.CanvasRenderingContext2D.prototype = ctx;
 
-    require('canvas-5-polyfill')
     ctx.antialias = "gray"
+
+    const nodes = select("//x:g/x:path", doc);
+    _.each(nodes, (e) => {
+        var d = e.attributes.getNamedItem("d")
+
+        var options = {}
+        // "fill", "fillStyle", "fillWeight",
+        // "hachureAngle", "hachureGap",
+        // "stroke", "strokeWidth",
+        // "bowing", "roughness", "simplification"
+        _.each(e.attributes, (attrNode) => {
+            if (attrNode.name != "id") {
+                options[attrNode.name] = attrNode.value
+            }
+        })
+        rc.path(d.value, options)
+    });
+    require("deasync").sleep(delay)
+
     ctx.font = "18px xkcd script"
     _.each(select("//x:g/x:text", doc), (te) => {
         var x = select("./@x", te)[0].value
         var y = select("./@y", te)[0].value
+        var fill = select("./@fill", te)[0]
+        if (fill) {
+            ctx.fillStyle = fill.value
+        }
         var text = te.firstChild.data
         ctx.fillText(text, parseInt(x), parseInt(y))
     })
-    rc.path('M80 80 A 45 45, 0, 0, 0, 125 125 L 125 80 Z', { fill: 'green', fillStyle: 'solid' });
-    const nodes = select("//x:g/x:path", doc);
-    _.each(nodes, (e) => {
-        var d = e.attributes.getNamedItem("d")
-        var fill = e.attributes.getNamedItem("fill")
-        if (fill) {
-            console.log(fill.value)
-            rc.path(d.value, {fill: fill.value, fillStyle: 'solid'})
-        } else {
-            rc.path(d.value)
-        }
-    });
-    /*
-    const nodes = select("//x:g/x:path/@d", doc);
-    _.each(nodes, (e) => {
-        rc.path(e.value)
-    });
-    */
 
     // copy non-rough elements, like markers...
     const defs = s.serializeToString(select("/x:svg/x:defs", doc)[0])
     const markers = s.serializeToString(select("//x:g[@id='lines']", doc)[0])
-
-    require("deasync").sleep(400)
     var result = canvas.toBuffer().toString()
     result = result.replace("</svg>", defs + markers + "</svg>")
     return result

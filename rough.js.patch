@@ -1,0 +1,13 @@
+--- ../rough.js
++++ rough.js
+@@ -1544,9 +1544,7 @@
+         let xc = [0, size[0], size[0], 0];
+         let yc = [0, 0, size[1], size[1]];
+         let fillShape = await lib.hachureFillShape(xc, yc, o);
+-        let hcanvas = document.createElement('canvas');
+-        hcanvas.width = size[0];
+-        hcanvas.height = size[1];
++        let hcanvas = createCanvas(size[0], size[1], "svg")
+         this._fillSketch(hcanvas.getContext("2d"), fillShape, o);
+         this.ctx.save();
+         this.ctx.fillStyle = this.ctx.createPattern(hcanvas, 'repeat');
