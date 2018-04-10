@@ -1,13 +1,14 @@
 const fillWeight = 5
-const delay = 500
 const roughness = 1
 const strokeWidth = 1.4
+const fontDef = "18px xkcd script"
 
 const { createCanvas, loadImage } = require('canvas')
 require('canvas-5-polyfill')
 const fs = require('fs')
 const util = require("util")
 const _ = require("underscore")._
+
 self = this
 self.document = {}
 self.document.currentScript = {}
@@ -20,24 +21,71 @@ const serializer = require('xmldom').XMLSerializer
 const s = new serializer()
 
 Math.seed = (s) =>
-    () => { s = Math.sin(s) * 10000; return s - Math.floor(s); }
+    () => { s = Math.sin(s) * 10000; return s - Math.floor(s); };
 
-// read
-//data = fs.readFileSync("sample.svg", "utf-8")
+const SVGO = require("svgo")
+const svgo = new SVGO({
+        js2svg: {
+            pretty: true
+        },
+        plugins: [{
+             cleanupAttrs: true,
+        }, { removeDoctype: true,
+        }, { removeXMLProcInst: true,
+        }, { removeComments: true,
+        }, { removeMetadata: true,
+        }, { removeTitle: true,
+        }, { removeDesc: true,
+        }, { removeUselessDefs: true,
+        }, { removeEditorsNSData: true,
+        }, { removeEmptyAttrs: true,
+        }, { removeHiddenElems: true,
+        }, { removeEmptyText: true,
+        }, { removeEmptyContainers: true,
+        }, { removeViewBox: true,
+        }, { cleanUpEnableBackground: true,
+        }, { minifyStyles: true,
+        }, { convertStyleToAttrs: true,
+        }, { convertColors: true,
+        }, { convertPathData: true,
+        }, { convertTransform: true,
+        }, { removeUnknownsAndDefaults: false,
+        }, { removeNonInheritableGroupAttrs: true,
+        }, { removeUselessStrokeAndFill: true,
+        }, { removeUnusedNS: true,
+        }, { cleanupIDs: false,
+        }, { cleanupNumericValues: true,
+        }, { moveElemsAttrsToGroup: false,
+        }, { moveGroupAttrsToElems: true,
+        }, { collapseGroups: true,
+        }, { removeRasterImages: false,
+        }, { mergePaths: true,
+        }, { convertShapeToPath: true,
+        }, { sortAttrs: true,
+        }, { transformsWithOnePath: true,
+        }, { removeDimensions: false,
+        },]
+      });
+        // removeAttrs: {attrs: '(stroke|fill)'},
 
-function convertSvgToSketch(svg, seed) {
+async function convertSvgToSketch(svg, seed, id) {
     if (svg[0] != "<") {
         return ""
     }
     seed = seed || 42
-
     Math.random = Math.seed(seed)
-    const doc = new dom().parseFromString(svg, "svg+xml");
-    const width = select("/x:svg/@width", doc)[0].value
-    const height = select("/x:svg/@height", doc)[0].value
+    id = id || undefined
+
+    const svg_optimized = await svgo.optimize(svg);
+    const doc = new dom().parseFromString(svg_optimized.data, "svg+xml");
+    //const doc = new dom().parseFromString(svg, "svg+xml");
+
+    // roughjs assumes pt, rest of the world px :-O
+    const width = parseInt(.75 * select("/x:svg/@width", doc)[0].value)
+    const height = parseInt(.75 * select("/x:svg/@height", doc)[0].value)
 
     // init canvas
-    const canvas = createCanvas(parseInt(width), parseInt(height), "svg")
+    const canvas = createCanvas(width, height, "svg")
     const rc = rough.canvas(canvas, {async: false,
                                      options: {roughness: roughness, strokeWidth: strokeWidth},
                                      noWorker: true})
@@ -51,25 +99,29 @@ function convertSvgToSketch(svg, seed) {
 
     ctx.antialias = "gray"
 
-    const nodes = select("//x:g/x:path", doc);
-    _.each(nodes, (e) => {
-        var d = e.attributes.getNamedItem("d")
+    //const nodes = doc.getElementsByTagName("path");
+    // select("//x:g/x:path", doc);
+    //for (var i=0; i<nodes.length; i++) {
+        //let e = nodes[i]
+    const nodes = select("//x:g/x:path", doc)
+    for (var i=0; i<nodes.length; i++) {
+        let d = nodes[i].attributes.getNamedItem("d")
 
         var options = {}
         // "fill", "fillStyle", "fillWeight",
         // "hachureAngle", "hachureGap",
         // "stroke", "strokeWidth",
         // "bowing", "roughness", "simplification"
-        _.each(e.attributes, (attrNode) => {
-            if (attrNode.name != "id") {
-                options[attrNode.name] = attrNode.value
+        _.each(nodes[i].attributes, (attr) => {
+            if (attr.name != "id") {
+                console.log("attr: " + attr.name + ": " + attr.value)
+                options[attr.name] = attr.value
             }
-        })
-        rc.path(d.value, options)
-    });
-    require("deasync").sleep(delay)
+        });
+        await rc.path(d.value, options)
+    };
 
-    ctx.font = "20px xkcd script"
+    ctx.font = fontDef
     _.each(select("//x:g/x:text", doc), (te) => {
         var x = select("./@x", te)[0].value
         var y = select("./@y", te)[0].value
@@ -77,8 +129,8 @@ function convertSvgToSketch(svg, seed) {
         if (fill) {
             ctx.fillStyle = fill.value
         }
-        var text = te.firstChild.data
-        ctx.fillText(text, parseInt(x), parseInt(y))
+        var text = te.firstChild.data.trim()
+        ctx.fillText(text, parseInt(x), parseInt(y), width - x)
     })
 
     // copy non-rough elements, like markers...
@@ -90,22 +142,21 @@ function convertSvgToSketch(svg, seed) {
     _.each(select("//x:svg/x:g", result_doc), (gn) => {
         gn.setAttribute("transform", "scale(0.75)")
     })
-    return s.serializeToString(result_doc)
+    if (id != undefined) {
+        result_doc.documentElement.setAttribute("id", id)
+    }
+    return await svgo.optimize(s.serializeToString(result_doc))
+    //return await svgo.optimize(canvas.toBuffer().toString())
+    //return {data: s.serializeToString(result_doc)}
 }
 
-function convertAsciiToSvg(text) {
+async function convertAsciiToSvg(text) {
     var exec = require('child_process').execSync
-    return exec('a2s -i- -o-', {input: text}).toString()
+    let svg = exec('a2s -i- -o-', {input: text}).toString()
+    // return await svgo.optimize(svg);
+    return {data: svg}
 }
 
-/*
-var data = fs.readFileSync("examples/logo-sketch.a2s", "utf-8")
-var svg = convertAsciiToSvg(data)
-fs.writeFileSync("examples/test.svg", svg)
-var sketch = convertSvgToSketch(svg, 42)
-fs.writeFileSync("examples/test.sketch.svg", sketch)
-process.exit()
-*/
 
 const express = require('express');
 const app = express();
@@ -116,9 +167,10 @@ app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'application/x-www
 
 app.post('/s2sketch', function(req, res){
     try {
-        var result = convertSvgToSketch(req.body, req.query.seed)
-        res.set('Content-Type', 'text/svg+xml')
-        res.status(200).send(result)
+        convertSvgToSketch(req.body, req.query.seed, req.query.id).then((result) => {
+            res.set('Content-Type', 'text/svg+xml')
+            res.status(200).send(result.data)
+        })
     } catch(error) {
         console.log(error)
         res.status(500).send(error)
@@ -126,9 +178,10 @@ app.post('/s2sketch', function(req, res){
 });
 
 app.post('/a2svg', function(req, res){
-    var svg = convertAsciiToSvg(req.body)
-    res.set('Content-Type', 'text/svg+xml')
-    res.status(200).send(svg)
+    convertAsciiToSvg(req.body).then((result) => {
+        res.set('Content-Type', 'text/svg+xml')
+        res.status(200).send(result.data)
+    })
 });
 
 app.post('/a2sketch', function(req, res){
