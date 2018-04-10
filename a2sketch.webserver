@@ -1,7 +1,7 @@
 const fillWeight = 5
 const roughness = 1
 const strokeWidth = 1.4
-const fontDef = "18px xkcd script"
+const fontDef = "20px xkcd script"
 
 const { createCanvas, loadImage } = require('canvas')
 require('canvas-5-polyfill')
@@ -107,17 +107,28 @@ async function convertSvgToSketch(svg, seed, id) {
     for (var i=0; i<nodes.length; i++) {
         let d = nodes[i].attributes.getNamedItem("d")
 
-        var options = {}
         // "fill", "fillStyle", "fillWeight",
         // "hachureAngle", "hachureGap",
         // "stroke", "strokeWidth",
         // "bowing", "roughness", "simplification"
-        _.each(nodes[i].attributes, (attr) => {
-            if (attr.name != "id") {
-                console.log("attr: " + attr.name + ": " + attr.value)
-                options[attr.name] = attr.value
+        function collectAttrs(node, attrs) {
+            attrs = attrs || {}
+            if (node.tagName === "svg") {
+                return attrs
             }
-        });
+            _.each(node.attributes, (a) => {
+                if (a.name != "id") {
+                    if (!(a.name in attrs)) {
+                        if (a.value !== "none") {
+                            //console.log(a.name, ":", a.value)
+                            attrs[a.name] = a.value
+                        }
+                    }
+                }
+            })
+            return collectAttrs(node.parentNode, attrs)
+        }
+        let options = collectAttrs(nodes[i])
         await rc.path(d.value, options)
     };
 
@@ -153,8 +164,8 @@ async function convertSvgToSketch(svg, seed, id) {
 async function convertAsciiToSvg(text) {
     var exec = require('child_process').execSync
     let svg = exec('a2s -i- -o-', {input: text}).toString()
-    // return await svgo.optimize(svg);
-    return {data: svg}
+    return await svgo.optimize(svg);
+    // return {data: svg}
 }
 
 
