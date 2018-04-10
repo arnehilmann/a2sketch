@@ -7,11 +7,10 @@ RUN apk update && apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++
 
 RUN npm -g config set user root
 RUN npm install -g canvas --build-from-source
-RUN npm install -g underscore xpath xmldom express body-parser deasync canvas-5-polyfill
+RUN npm install -g underscore xpath xmldom express body-parser canvas-5-polyfill svgo
 
 WORKDIR /
 RUN git clone https://github.com/dhobsd/asciitosvg.git
-RUN curl -OL https://cdn.rawgit.com/pshihn/rough/9be60b1e/dist/rough.min.js
 RUN curl -OL https://cdn.rawgit.com/pshihn/rough/9be60b1e/dist/rough.js
 RUN curl -OL https://github.com/ipython/xkcd-font/raw/master/xkcd-script/font/xkcd-script.ttf
 
