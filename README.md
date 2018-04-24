@@ -4,26 +4,26 @@ convert asciiart to handwritten sketches
 
 ![sketch](examples/logo-sketch.svg)
 
-```render_a2sketch
-     #-------------------.
-     |[0]                |
-     | .---# .---# #---. |
-     | |[1]| |[2]| |[3]| |
-     | #-+-' #-+-' '-+-# |
-     |   ^     ^     ^   |
-     #---+-----+--=--+---#
-     |[4]|     |     |   |
-     |   a     2  sketch |
-     '-------------------#
- github.com/arnehilmann/a2sketch
+<sub>
 
-[0]: {"fill": "#933", "a2s:delref": true, "fillStyle": "solid"}
-[1]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-[2]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-[3]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-[4]: {"fill": "#ddd", "a2s:delref": true}
-```
+         #-------------------.
+         |[0]                |
+         | .---# .---# #---. |
+         | |[1]| |[2]| |[3]| | 
+         | #---' #---' '---# |
+         |   ^     ^     ^   | 
+         #---+-----+--=--+---#
+         |[4]|     |     |   |
+         |   a     2  sketch |
+         '-------------------#  
+      github.com/arnehilmann/a2sketch
 
+    [0]: {"fill": "#933", "a2s:delref": true, "fillStyle": "solid"}
+    [1]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+    [2]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+    [3]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
+    [4]: {"fill": "#ddd", "a2s:delref": true}
+</sub>
 
 ## tl;dr
 
