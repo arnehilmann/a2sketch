@@ -3,6 +3,8 @@ LABEL maintainer="arne@hilmann.de"
 
 USER root
 
+RUN echo "trigger new build"
+
 RUN apk update && apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++ make git php5 php5-json && rm -rf /var/cache/apk/*
 
 RUN npm -g config set user root

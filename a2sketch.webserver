@@ -1,9 +1,13 @@
 const fillWeight = 5
-const roughness = 1
-const strokeWidth = 1.4
-const fontDef = "20px xkcd script"
+const roughness = 1.4
+const strokeWidth = 2
+const fontSize = 15
 
-const { createCanvas, loadImage } = require('canvas')
+const Canvas = require('canvas')
+function createCanvas(w, h, opt) {
+    return new Canvas(w, h, opt)
+}
+
 require('canvas-5-polyfill')
 const fs = require('fs')
 const util = require("util")
@@ -39,7 +43,7 @@ const svgo = new SVGO({
         }, { removeUselessDefs: true,
         }, { removeEditorsNSData: true,
         }, { removeEmptyAttrs: true,
-        }, { removeHiddenElems: true,
+        }, { removeHiddenElems: false,
         }, { removeEmptyText: true,
         }, { removeEmptyContainers: true,
         }, { removeViewBox: true,
@@ -59,7 +63,7 @@ const svgo = new SVGO({
         }, { moveGroupAttrsToElems: true,
         }, { collapseGroups: true,
         }, { removeRasterImages: false,
-        }, { mergePaths: true,
+        }, { mergePaths: false,
         }, { convertShapeToPath: true,
         }, { sortAttrs: true,
         }, { transformsWithOnePath: true,
@@ -68,18 +72,36 @@ const svgo = new SVGO({
       });
         // removeAttrs: {attrs: '(stroke|fill)'},
 
-async function convertSvgToSketch(svg, seed, id) {
+function collectAttrs(node, attrs) {
+    attrs = attrs || {}
+    if (node.tagName === "svg") {
+        return attrs
+    }
+    _.each(node.attributes, (a) => {
+        if (a.name != "id") {
+            if (!(a.name in attrs)) {
+                if (a.value !== "none") {
+                    //console.log(a.name, ":", a.value)
+                    attrs[a.name] = a.value
+                }
+            }
+        }
+    })
+    return collectAttrs(node.parentNode, attrs)
+}
+
+async function convertSvgToSketch(svg, seed, id, hideFilledPathes) {
     if (svg[0] != "<") {
         return ""
     }
     seed = seed || 42
-    Math.random = Math.seed(seed)
     id = id || undefined
+    hideFilledPathes = hideFilledPathes || false
+
+    Math.random = Math.seed(seed)
 
     const svg_optimized = await svgo.optimize(svg);
     const doc = new dom().parseFromString(svg_optimized.data, "svg+xml");
-    //const doc = new dom().parseFromString(svg, "svg+xml");
-
     // roughjs assumes pt, rest of the world px :-O
     const width = parseInt(.75 * select("/x:svg/@width", doc)[0].value)
     const height = parseInt(.75 * select("/x:svg/@height", doc)[0].value)
@@ -92,77 +114,79 @@ async function convertSvgToSketch(svg, seed, id) {
 
     // plot
     const ctx = canvas.getContext("2d")
-    // canvas-5-polyfill patches CanvasRenderingContext2D.prototype
-    // lets give it one
+    // canvas-5-polyfill patches CanvasRenderingContext2D.prototype, lets give it one
     global.CanvasRenderingContext2D = {};
     global.CanvasRenderingContext2D.prototype = ctx;
-
     ctx.antialias = "gray"
 
-    //const nodes = doc.getElementsByTagName("path");
-    // select("//x:g/x:path", doc);
-    //for (var i=0; i<nodes.length; i++) {
-        //let e = nodes[i]
     const nodes = select("//x:g/x:path", doc)
-    for (var i=0; i<nodes.length; i++) {
+    for (let i=0; i<nodes.length; i++) {
         let d = nodes[i].attributes.getNamedItem("d")
-
         // "fill", "fillStyle", "fillWeight",
         // "hachureAngle", "hachureGap",
         // "stroke", "strokeWidth",
         // "bowing", "roughness", "simplification"
-        function collectAttrs(node, attrs) {
-            attrs = attrs || {}
-            if (node.tagName === "svg") {
-                return attrs
-            }
-            _.each(node.attributes, (a) => {
-                if (a.name != "id") {
-                    if (!(a.name in attrs)) {
-                        if (a.value !== "none") {
-                            //console.log(a.name, ":", a.value)
-                            attrs[a.name] = a.value
-                        }
-                    }
-                }
-            })
-            return collectAttrs(node.parentNode, attrs)
-        }
-        let options = collectAttrs(nodes[i])
-        await rc.path(d.value, options)
+        await rc.path(d.value, collectAttrs(nodes[i]))
     };
 
+    /*
     ctx.font = fontDef
     _.each(select("//x:g/x:text", doc), (te) => {
-        var x = select("./@x", te)[0].value
-        var y = select("./@y", te)[0].value
-        var fill = select("./@fill", te)[0]
+        let x = select("./@x", te)[0].value
+        let y = select("./@y", te)[0].value
+        let fill = select("./@fill", te)[0]
         if (fill) {
             ctx.fillStyle = fill.value
         }
-        var text = te.firstChild.data.trim()
+        let text = te.firstChild.data.trim()
         ctx.fillText(text, parseInt(x), parseInt(y), width - x)
     })
+    */
 
-    // copy non-rough elements, like markers...
+    // copy non-rough elements, like markers... TODO
     const defs = s.serializeToString(select("/x:svg/x:defs", doc)[0])
+    const fontStyle = `
+        <defs>
+            <style type="text/css">
+                @font-face {
+                    font-family: "xkcd Script";
+                    src: url('./xkcd-script.ttf');
+                }
+            </style>
+        </defs>
+    `
     const markers = s.serializeToString(select("//x:g[@id='lines']", doc)[0])
-    var result = canvas.toBuffer().toString()
-    result = result.replace("</svg>", defs + markers + "</svg>")
-    const result_doc = new dom().parseFromString(result, "svg+xml");
-    _.each(select("//x:svg/x:g", result_doc), (gn) => {
-        gn.setAttribute("transform", "scale(0.75)")
+    let result = canvas.toBuffer().toString()
+    result = result.replace("</svg>", defs + fontStyle + markers + "</svg>")
+    const result_doc = new dom().parseFromString((await svgo.optimize(result)).data, "svg+xml");
+    _.each(select("//x:svg/x:g", result_doc), (elem) => {
+        elem.setAttribute("transform", "scale(0.75)")
     })
+    if (hideFilledPathes) {
+        _.each(select("//x:path/@fill", result_doc), (attr) => {
+            if (attr.value && attr.value != 'none') {
+                attr.ownerElement.setAttribute("display", "none")
+            }
+        })
+    }
     if (id != undefined) {
         result_doc.documentElement.setAttribute("id", id)
     }
+    _.each(select("//x:g/x:text", doc), (te) => {
+        //te.setAttribute("transform", "scale(0.75)")
+        te.setAttribute("font-family", "xkcd Script")
+        te.setAttribute("font-size", fontSize)
+        te.setAttribute("x", 0.75 * te.getAttribute("x"))
+        te.setAttribute("y", 0.75 * te.getAttribute("y"))
+        result_doc.documentElement.appendChild(te)
+    })
     return await svgo.optimize(s.serializeToString(result_doc))
     //return await svgo.optimize(canvas.toBuffer().toString())
     //return {data: s.serializeToString(result_doc)}
 }
 
 async function convertAsciiToSvg(text) {
-    var exec = require('child_process').execSync
+    let exec = require('child_process').execSync
     let svg = exec('a2s -i- -o-', {input: text}).toString()
     return await svgo.optimize(svg);
     // return {data: svg}
@@ -178,27 +202,32 @@ app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'application/x-www
 
 app.post('/s2sketch', function(req, res){
     try {
-        convertSvgToSketch(req.body, req.query.seed, req.query.id).then((result) => {
+        convertSvgToSketch(req.body, req.query.seed, req.query.id, req.query.hideFilledPathes).then((result) => {
             res.set('Content-Type', 'text/svg+xml')
             res.status(200).send(result.data)
         })
     } catch(error) {
-        console.log(error)
+        console.error(error)
         res.status(500).send(error)
     }
 });
 
 app.post('/a2svg', function(req, res){
-    convertAsciiToSvg(req.body).then((result) => {
-        res.set('Content-Type', 'text/svg+xml')
-        res.status(200).send(result.data)
-    })
+    try {
+        convertAsciiToSvg(req.body).then((result) => {
+            res.set('Content-Type', 'text/svg+xml')
+            res.status(200).send(result.data)
+        })
+    } catch(error) {
+        console.error(error)
+        res.status(500).send(error)
+    }
 });
 
 app.post('/a2sketch', function(req, res){
     if (req._body) {
-        var svg = convertAsciiToSvg(req.body)
-        var sketch = convertSvgToSketch(svg, req.query.seed)
+        let svg = convertAsciiToSvg(req.body)
+        let sketch = convertSvgToSketch(svg, req.query.seed)
         res.set('Content-Type', 'text/svg+xml')
         res.status(200).send(sketch)
     } else {
