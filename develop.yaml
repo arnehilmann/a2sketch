@@ -1,0 +1,18 @@
+version: "3.2"
+
+services:
+  a2sketch:
+    build:
+      context: .
+    image: "arne/a2sketch:0.6"
+    ports:
+      - "22753:22753"
+
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/sh
+    volumes:
+      - type: bind
+        source: .
+        target: /home/node
+        #read_only: true

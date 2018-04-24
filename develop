@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[[ -e rough.js ]] || {
+    curl -OL https://cdn.rawgit.com/pshihn/rough/9be60b1e/dist/rough.js
+    patch rough.js rough.js.patch
+}
+
+[[ -e xkcd-script.ttf ]] ||
+    curl -OL https://github.com/ipython/xkcd-font/raw/master/xkcd-script/font/xkcd-script.ttf
+
+docker-compose -f develop.yaml run --service-ports a2sketch
