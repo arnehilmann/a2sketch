@@ -3,9 +3,9 @@ const roughness = 1.4
 const strokeWidth = 2
 const fontSize = 15
 
-const Canvas = require('canvas')
+const mod_canvas = require('canvas')
 function createCanvas(w, h, opt) {
-    return new Canvas(w, h, opt)
+    return new mod_canvas.Canvas(w, h, opt)
 }
 
 require('canvas-5-polyfill')
@@ -202,10 +202,11 @@ app.use(bodyParser.text({ inflate: true, limit: '10mb', type: 'application/x-www
 
 app.post('/s2sketch', function(req, res){
     try {
-        convertSvgToSketch(req.body, req.query.seed, req.query.id, req.query.hideFilledPathes).then((result) => {
+        convertSvgToSketch(req.body, req.query.seed, req.query.id, req.query.hideFilledPathes == 'true').then((result) => {
             res.set('Content-Type', 'text/svg+xml')
             res.status(200).send(result.data)
         })
+        console.log("s2sketch successfull")
     } catch(error) {
         console.error(error)
         res.status(500).send(error)
@@ -218,6 +219,7 @@ app.post('/a2svg', function(req, res){
             res.set('Content-Type', 'text/svg+xml')
             res.status(200).send(result.data)
         })
+        console.log("a2svg successfull")
     } catch(error) {
         console.error(error)
         res.status(500).send(error)
@@ -225,13 +227,17 @@ app.post('/a2svg', function(req, res){
 });
 
 app.post('/a2sketch', function(req, res){
-    if (req._body) {
-        let svg = convertAsciiToSvg(req.body)
-        let sketch = convertSvgToSketch(svg, req.query.seed)
-        res.set('Content-Type', 'text/svg+xml')
-        res.status(200).send(sketch)
-    } else {
-        res.status(400).end("empty body?!")
+    try {
+        convertAsciiToSvg(req.body).then((svg) => {
+            return convertSvgToSketch(svg.data, req.query.seed, req.query.id, req.query.hideFilledPathes == 'true')
+        }).then((sketch) => {
+            res.set('Content-Type', 'text/svg+xml')
+            res.status(200).send(sketch.data)
+        })
+        console.log("a2sketch successfull")
+    } catch(error) {
+        console.error(error)
+        res.status(500).send(error)
     }
 });
 

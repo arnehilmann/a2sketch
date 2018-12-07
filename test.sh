@@ -8,11 +8,13 @@ OUT=${3:-out}
 BASENAME=$(basename $SOURCE .a2s)
 SVG0=$OUT/$BASENAME.0.svg
 SVG1=$OUT/$BASENAME.1.svg
+SVG2=$OUT/$BASENAME.2.svg
 INDEX=$OUT/index.html
 
 rm -rf $OUT/* && mkdir -p $OUT
 curl -s -S --data "$(cat $SOURCE)" -o $SVG0 $HOST/a2svg
 curl -s -S --data "$(cat $SVG0)" -o $SVG1 "$HOST/s2sketch?id=foo&hideFilledPathes=true"
+curl -s -S --data "$(cat $SOURCE)" -o $SVG2 "$HOST/a2sketch?id=bar"
 
 cp vivus*.js *.ttf $OUT/
 
