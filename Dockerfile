@@ -13,7 +13,7 @@ RUN npm install -g underscore xpath xmldom express body-parser canvas-5-polyfill
 
 WORKDIR /
 RUN git clone https://github.com/dhobsd/asciitosvg.git
-RUN curl -OL https://cdn.rawgit.com/pshihn/rough/9be60b1e/dist/rough.js
+RUN curl -OL https://cdn.jsdelivr.net/gh/pshihn/rough@9be60b1e/dist/rough.js
 RUN curl -OL https://github.com/ipython/xkcd-font/raw/master/xkcd-script/font/xkcd-script.ttf
 
 

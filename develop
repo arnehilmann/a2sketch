@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [[ -e rough.js ]] || {
-    curl -OL https://cdn.rawgit.com/pshihn/rough/9be60b1e/dist/rough.js
+    curl -OL https://cdn.jsdelivr.net/gh/pshihn/rough@9be60b1e/dist/rough.js
     patch rough.js rough.js.patch
 }
 
