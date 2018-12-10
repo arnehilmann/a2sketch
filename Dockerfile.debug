@@ -25,10 +25,15 @@ ENV FONTCONFIG_PATH=/etc/fonts
 RUN fc-cache -v -f
 RUN fc-list
 
+RUN chmod a+rwx /asciitosvg/objects
+
 # switch to non-root user
 USER node
 WORKDIR /home/node
-RUN mkdir -p .a2s/objects
+# RUN mkdir -p .a2s/objects
+RUN mkdir -p .a2s/
+RUN ln -sf /asciitosvg/objects /home/node/.a2s/objects
+COPY addons/* /asciitosvg/objects/
 
 ENV NODE_PATH=/usr/local/lib/node_modules/
 COPY a2sketch.webserver .
