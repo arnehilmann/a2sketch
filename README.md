@@ -9,13 +9,13 @@ convert asciiart to handwritten sketches
          #-------------------.
          |[0]                |
          | .---# .---# #---. |
-         | |[1]| |[2]| |[3]| | 
+         | |[1]| |[2]| |[3]| |
          | #---' #---' '---# |
-         |   ^     ^     ^   | 
+         |   ^     ^     ^   |
          #---+-----+--=--+---#
          |[4]|     |     |   |
          |   a     2  sketch |
-         '-------------------#  
+         '-------------------#
       github.com/arnehilmann/a2sketch
 
     [0]: {"fill": "#933", "a2s:delref": true, "fillStyle": "solid"}
@@ -28,8 +28,8 @@ convert asciiart to handwritten sketches
 ## tl;dr
 
 ```
-docker pull arne/a2sketch:0.5
-docker run -it -p 22357:22357 arne/a2sketch:0.5
+docker pull arne/a2sketch:0.9
+docker run -it -p 22357:22357 arne/a2sketch:0.9
 curl -s --data-binary "-=-=- tadahh -==-" http://localhost:22753/a2sketch -o sketch.svg
 open sketch.svg
 ```
