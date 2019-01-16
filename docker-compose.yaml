@@ -5,6 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.debug
-    image: "arne/a2sketch:0.9"
+    image: "arne/a2sketch:0.10"
     ports:
       - "22753:22753"

@@ -5,11 +5,16 @@ USER root
 
 RUN echo "trigger new build"
 
-RUN apk update && apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++ make git php5 php5-json && rm -rf /var/cache/apk/*
+RUN apk update && \
+    apk add curl python cairo-dev pkgconf pixman-dev pango-dev g++ \
+        make git php5 php5-json libpng libjpeg-turbo-dev giflib-dev && \
+    rm -rf /var/cache/apk/*
 
 RUN npm -g config set user root
 RUN npm install -g canvas --build-from-source
 RUN npm install -g underscore xpath xmldom express body-parser canvas-5-polyfill svgo
+
+RUN echo ahhhh
 
 WORKDIR /
 RUN git clone https://github.com/dhobsd/asciitosvg.git
@@ -38,7 +43,7 @@ COPY addons/* /asciitosvg/objects/
 ENV NODE_PATH=/usr/local/lib/node_modules/
 COPY a2sketch.webserver .
 COPY rough.js.patch .
-COPY /rough.* ./
-#RUN patch rough.js rough.js.patch
+RUN cp /rough.* ./
+RUN patch rough.js rough.js.patch
 
 ENTRYPOINT ["node", "a2sketch.webserver"]
