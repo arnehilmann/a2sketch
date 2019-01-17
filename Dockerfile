@@ -88,8 +88,6 @@ RUN chmod a+rwx /asciitosvg/objects/
 # node modules
 COPY --from=build /usr/local/lib/node_modules /usr/local/lib/node_modules
 
-# RUN chmod -R a+rwx /asciitosvg/
-
 # switch to non-root user
 USER node
 WORKDIR /home/node
