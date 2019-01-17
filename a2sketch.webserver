@@ -186,6 +186,15 @@ async function convertSvgToSketch(svg, seed, id, hideFilledPathes) {
 }
 
 async function convertAsciiToSvg(text) {
+    let fsync = require('sync-files')
+    fsync("/custom-types",
+        "/asciitosvg/objects/",
+        {"watch": false, "delete": false, "depth": 10},
+        function(event, data) {
+            //console.log(event, data);
+        }
+    )
+
     let exec = require('child_process').execSync
     let svg = exec('a2s -i- -o-', {input: text}).toString()
     return await svgo.optimize(svg);

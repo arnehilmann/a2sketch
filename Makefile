@@ -15,7 +15,7 @@ stop:
 
 debug:
 	@echo "default entrypoint: 'node a2sketch.webserver'"
-	docker run -it -p 22753:22753 --entrypoint ash arne/a2sketch:$(VERSION)
+	docker run -it -p 22753:22753 -v ${PWD}/custom-types:/custom-types:ro --entrypoint ash arne/a2sketch:$(VERSION)
 
 push:
 	docker-compose push
