@@ -37,6 +37,24 @@ open sketch.svg
 
 see the original
 [How Do I Draw Section](https://github.com/dhobsd/asciitosvg#how-do-i-draw)
+of the [old asciitosvg readme](https://github.com/dhobsd/asciitosvg)
+
+
+## local testing
+
+To test your asciiart rendering and your custom shapes locally, you can use the following `make` targets:
+
+* start<br/>
+  builds the image and starts the server
+
+* stop<br/>
+  stops the server
+
+* test<br/>
+  runs a small test against a running server, taking .a2s files from the examples folder
+
+* debug<br/>
+  starts the container, but does not start the webserver automatically
 
 
 ## your own shapes
