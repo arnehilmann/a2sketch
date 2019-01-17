@@ -3,8 +3,10 @@ version: "3.2"
 services:
   a2sketch:
     build:
+      args:
+        version: "0.11"
       context: .
       dockerfile: Dockerfile.debug
-    image: "arne/a2sketch:0.10"
+    image: "arne/a2sketch:0.11"
     ports:
       - "22753:22753"
