@@ -9,30 +9,49 @@ convert asciiart to handwritten sketches
          #-------------------.
          |[0]                |
          | .---# .---# #---. |
-         | |[1]| |[2]| |[3]| |
+         | |[1]| |[1]| |[2]| |
          | #---' #---' '---# |
          |   ^     ^     ^   |
          #---+-----+--=--+---#
-         |[4]|     |     |   |
+         |   |     |     |   |
          |   a     2  sketch |
          '-------------------#
       github.com/arnehilmann/a2sketch
 
     [0]: {"fill": "#933", "a2s:delref": true, "fillStyle": "solid"}
     [1]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-    [2]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-    [3]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid"}
-    [4]: {"fill": "#ddd", "a2s:delref": true}
+    [2]: {"fill": "#bbb", "a2s:delref": true, "fillStyle": "solid", "a2s:type": "circle"}
 </sub>
 
 ## tl;dr
 
 ```
-docker pull arne/a2sketch:0.9
-docker run -it -p 22357:22357 arne/a2sketch:0.9
+docker pull arne/a2sketch:0.11
+docker run -it -p 22357:22357 arne/a2sketch:0.11
 curl -s --data-binary "-=-=- tadahh -==-" http://localhost:22753/a2sketch -o sketch.svg
 open sketch.svg
 ```
+
+
+## documentation
+
+see the original
+[How Do I Draw Section](https://github.com/dhobsd/asciitosvg#how-do-i-draw)
+
+
+## your own shapes
+
+In `a2s-custom-types`, you can define your own shapes:
+
+1. the filename must be the name of your shape with ".path" extension<br/>
+   example: shape "drop" -> `a2s-custom-types/drop.path`
+
+2. the file must contain a single path element, with the attributes `width`, `height`, and `d`<br/>
+   example: `<path width="100" height="100" d="M 50 0 A 50 50 0 1 0 100 50 V 0 Z" />`
+
+Notes: review the [Creating Special Objects Section](https://github.com/dhobsd/asciitosvg#creating-special-objects)
+and have a look at some svg path documentation, like the
+[SVG Path Tutorial](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths).
 
 
 ## References
