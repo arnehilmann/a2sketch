@@ -191,7 +191,12 @@ async function convertAsciiToSvg(text) {
         "/asciitosvg/objects/",
         {"watch": false, "delete": false, "depth": 10},
         function(event, data) {
-            //console.log(event, data);
+            if (event === "no-delete") {
+                return;
+            }
+            console.log(event, data);
+            let exec = require('child_process').execSync
+            exec('touch /asciitosvg/objects/')
         }
     )
 
