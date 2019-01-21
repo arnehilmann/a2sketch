@@ -62,8 +62,8 @@ const svgo = new SVGO({
         }, { moveElemsAttrsToGroup: false,
         }, { moveGroupAttrsToElems: true,
         }, { collapseGroups: true,
-        }, { removeRasterImages: false,
-        }, { mergePaths: false,
+        }, { removeRasterImages: true,
+        }, { mergePaths: true,
         }, { convertShapeToPath: true,
         }, { sortAttrs: true,
         }, { transformsWithOnePath: true,
@@ -90,6 +90,10 @@ function collectAttrs(node, attrs) {
     return collectAttrs(node.parentNode, attrs)
 }
 
+var uniqueId = function() {
+  return Math.random().toString(36).substr(2, 16);
+};
+
 async function convertSvgToSketch(svg, seed, id, hideFilledPathes) {
     if (svg[0] != "<") {
         return ""
@@ -105,6 +109,8 @@ async function convertSvgToSketch(svg, seed, id, hideFilledPathes) {
     // roughjs assumes pt, rest of the world px :-O
     const width = parseInt(.75 * select("/x:svg/@width", doc)[0].value)
     const height = parseInt(.75 * select("/x:svg/@height", doc)[0].value)
+    //const width = parseInt(1 * select("/x:svg/@width", doc)[0].value)
+    //const height = parseInt(1 * select("/x:svg/@height", doc)[0].value)
 
     // init canvas
     const canvas = createCanvas(width, height, "svg")
@@ -158,10 +164,30 @@ async function convertSvgToSketch(svg, seed, id, hideFilledPathes) {
     const markers = s.serializeToString(select("//x:g[@id='lines']", doc)[0])
     let result = canvas.toBuffer().toString()
     result = result.replace("</svg>", defs + fontStyle + markers + "</svg>")
+
     const result_doc = new dom().parseFromString((await svgo.optimize(result)).data, "svg+xml");
     _.each(select("//x:svg/x:g", result_doc), (elem) => {
         elem.setAttribute("transform", "scale(0.75)")
     })
+
+    const suffix = "-" + uniqueId()
+    _.each(select("//x:svg/x:defs/x:marker", result_doc), (elem) => {
+        console.log(elem.getAttribute("id"))
+        elem.setAttribute("id", elem.getAttribute("id") + suffix)
+    })
+    _.each(select("//x:svg/x:g[@id='lines']", result_doc), (lines_elem) => {
+        lines_elem.setAttribute("id", "lines" + suffix)
+        //console.log(lines_elem)
+        _.each(select("//x:g/x:path", lines_elem), (line_elem) => {
+            if (line_elem.hasAttribute("marker-start")) {
+                line_elem.setAttribute("marker-start", line_elem.getAttribute("marker-start").slice(0, -1) + suffix + ")")
+            }
+            if (line_elem.hasAttribute("marker-end")) {
+                line_elem.setAttribute("marker-end", line_elem.getAttribute("marker-end").slice(0, -1) + suffix + ")")
+            }
+        })
+    })
+
     if (hideFilledPathes) {
         _.each(select("//x:path/@fill", result_doc), (attr) => {
             if (attr.value && attr.value != 'none') {
