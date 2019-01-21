@@ -25,6 +25,7 @@ for SOURCE in examples/*.a2s; do
     for F in $OUT/$BASENAME*.svg; do
         cat $F
     done
+    echo "<img src='$BASENAME.1.svg'/>"
     echo "</br>"
 done
 
