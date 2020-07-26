@@ -8,7 +8,7 @@ INDEX=$OUT/index.html
 rm -rf $OUT/* && mkdir -p $OUT
 cp vivus*.js *.ttf $OUT/
 exec 3>&1 1>$INDEX
-echo "<html><head><style>svg {border: 1pt solid black; vertical-align: top;}</style></head><body>"
+echo "<html><head><style>svg {border: 1pt solid black; vertical-align: top;} @font-face {font-family: "xkcd Script"; src: url('./xkcd-script.ttf');}</style></head><body>"
 
 BASENAMES=()
 for SOURCE in examples/*.a2s; do
