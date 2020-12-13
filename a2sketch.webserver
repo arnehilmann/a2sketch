@@ -80,7 +80,7 @@ const svgo = new SVGO({
               return extra.prefix;
             },
           },
-        }]
+        },]
       });
         // removeAttrs: {attrs: '(stroke|fill)'},
 
