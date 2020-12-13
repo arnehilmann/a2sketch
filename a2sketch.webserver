@@ -73,7 +73,14 @@ const svgo = new SVGO({
         }, { sortAttrs: true,
         }, { transformsWithOnePath: true,
         }, { removeDimensions: false,
-        },]
+        }, {
+          prefixIds: {
+            delim: "-",
+            prefix: function (node, extra) {
+              return extra.prefix;
+            },
+          },
+        }]
       });
         // removeAttrs: {attrs: '(stroke|fill)'},
 
@@ -197,7 +204,9 @@ async function convertAsciiToSvg(text) {
 
     let exec = require('child_process').execSync
     let svg = exec('/usr/bin/php /asciitosvg/a2s', {input: text}).toString()
-    return await svgo.optimize(svg);
+    return await svgo.optimize(svg, {
+      prefix: uniqueId(),
+    });
     // return {data: svg}
 }
 
